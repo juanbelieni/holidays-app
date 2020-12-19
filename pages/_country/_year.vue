@@ -1,30 +1,53 @@
 <template>
-  <v-container>
-    <v-card
-      v-for="(holiday, index) in holidays"
-      :key="index"
-      class="holiday"
-      elevation="1"
-    >
-      <v-card-title>{{ holiday.name }}</v-card-title>
-      <v-card-text>{{ holiday.date }}</v-card-text>
-    </v-card>
-  </v-container>
+  <v-main>
+    <app-bar :country-name="countryName"></app-bar>
+    <v-container>
+      <v-card
+        v-for="(holiday, index) in holidays"
+        :key="index"
+        class="holiday"
+        elevation="1"
+      >
+        <v-card-title>{{ holiday.name }}</v-card-title>
+        <v-card-text>{{ holiday.date }}</v-card-text>
+      </v-card>
+    </v-container>
+  </v-main>
 </template>
 
 <script>
+import AppBar from '~/components/AppBar.vue'
 export default {
+  components: { AppBar },
   async asyncData({ params, $axios }) {
     const { country, year } = params
 
-    const data = await $axios.$get(`/api/PublicHolidays/${year}/${country}`)
+    const holidaysData = await $axios.$get(
+      `/api/PublicHolidays/${year}/${country}`
+    )
 
-    const holidays = data.map((row) => ({
+    const holidays = holidaysData.map((row) => ({
       name: row.localName,
       date: row.date,
     }))
 
-    return { holidays }
+    const countryData = await $axios.$get('/api/CountryInfo', {
+      params: {
+        countryCode: country,
+      },
+    })
+
+    const countryName = countryData?.commonName
+
+    return { holidays, countryName }
+  },
+
+  head() {
+    if (this.countryName) {
+      return {
+        title: this.countryName,
+      }
+    }
   },
 }
 </script>
