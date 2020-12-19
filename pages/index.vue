@@ -11,7 +11,7 @@
               :rules="form.rules.country"
               :items="countries"
               item-text="name"
-              item-value="key"
+              item-value="code"
             ></v-select>
           </v-col>
           <v-col cols="12" md="6">
@@ -36,21 +36,22 @@
 import AppBar from '~/components/AppBar.vue'
 export default {
   components: { AppBar },
-  ssr: false,
-  async asyncData({ $axios }) {
-    const data = await $axios.$get('/api/AvailableCountries')
 
-    const countries = data.map((row) => ({
-      name: row.value,
-      key: row.key,
-    }))
+  async fetch({ $axios, store }) {
+    if (store.state.countries.list.length === 0) {
+      const data = await $axios.$get('/api/AvailableCountries')
 
-    return { countries }
+      const countries = data.map((row) => ({
+        name: row.value,
+        code: row.key,
+      }))
+
+      store.commit('countries/update', countries)
+    }
   },
 
   data() {
     return {
-      countries: [],
       form: {
         valid: false,
         fields: {
@@ -66,6 +67,12 @@ export default {
         },
       },
     }
+  },
+
+  computed: {
+    countries() {
+      return this.$store.state.countries.list
+    },
   },
 
   methods: {

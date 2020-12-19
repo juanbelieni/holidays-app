@@ -19,17 +19,26 @@
 import AppBar from '~/components/AppBar.vue'
 export default {
   components: { AppBar },
-  async asyncData({ params, $axios }) {
+
+  async fetch({ params, $axios, store }) {
     const { country, year } = params
 
-    const holidaysData = await $axios.$get(
-      `/api/PublicHolidays/${year}/${country}`
-    )
+    if (!store.state.holidays[`${country}${year}`]) {
+      const holidaysData = await $axios.$get(
+        `/api/PublicHolidays/${year}/${country}`
+      )
 
-    const holidays = holidaysData.map((row) => ({
-      name: row.localName,
-      date: row.date,
-    }))
+      const holidays = holidaysData.map((row) => ({
+        name: row.localName,
+        date: row.date,
+      }))
+
+      store.commit('holidays/update', { country, year, holidays })
+    }
+  },
+
+  async asyncData({ params, $axios }) {
+    const { country } = params
 
     const countryData = await $axios.$get('/api/CountryInfo', {
       params: {
@@ -39,7 +48,14 @@ export default {
 
     const countryName = countryData?.commonName
 
-    return { holidays, countryName }
+    return { countryName }
+  },
+
+  computed: {
+    holidays() {
+      const { country, year } = this.$route.params
+      return this.$store.state.holidays[`${country}${year}`]
+    },
   },
 
   head() {
