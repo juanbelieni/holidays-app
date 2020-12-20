@@ -21,20 +21,13 @@ export const getters: GetterTree<RootState, RootState> = {
 }
 
 export const mutations: MutationTree<RootState> = {
-  update(
-    state,
-    {
-      country,
-      year,
-      holidays,
-    }: { country: string; year: string; holidays: Holiday[] }
-  ) {
+  update(state, { country, year, holidays }: Record<string, any>) {
     state[country] = { [year]: holidays }
   },
 }
 
 export const actions: ActionTree<RootState, RootState> = {
-  async fetch({ commit, state }, { country, year }: Record<string, string>) {
+  async fetch({ commit, state }, { country, year }: Record<string, any>) {
     if (!state[country]?.[year]) {
       const holidaysData = await this.$axios.$get(
         `/api/PublicHolidays/${year}/${country}`
