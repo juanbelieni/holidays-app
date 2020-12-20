@@ -1,6 +1,6 @@
 <template>
   <v-main>
-    <app-bar :country-name="countryName"></app-bar>
+    <app-bar :country-name="countryName" />
     <v-container>
       <v-card
         v-for="(holiday, index) in holidays"
@@ -20,21 +20,9 @@ import AppBar from '~/components/AppBar.vue'
 export default {
   components: { AppBar },
 
-  async fetch({ params, $axios, store }) {
+  async fetch({ store, params }) {
     const { country, year } = params
-
-    if (!store.state.holidays[`${country}${year}`]) {
-      const holidaysData = await $axios.$get(
-        `/api/PublicHolidays/${year}/${country}`
-      )
-
-      const holidays = holidaysData.map((row) => ({
-        name: row.localName,
-        date: row.date,
-      }))
-
-      store.commit('holidays/update', { country, year, holidays })
-    }
+    await store.dispatch('holidays/fetch', { country, year })
   },
 
   async asyncData({ params, $axios }) {
@@ -54,7 +42,7 @@ export default {
   computed: {
     holidays() {
       const { country, year } = this.$route.params
-      return this.$store.state.holidays[`${country}${year}`]
+      return this.$store.getters['holidays/holidays'](country, year)
     },
   },
 

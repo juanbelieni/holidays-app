@@ -1,8 +1,8 @@
 <template>
   <v-main>
-    <app-bar></app-bar>
+    <app-bar />
     <v-form ref="form" v-model="form.valid" @submit.prevent="submit">
-      <v-container fluid>
+      <v-container>
         <v-row>
           <v-col cols="12" md="6">
             <v-select
@@ -34,20 +34,12 @@
 
 <script>
 import AppBar from '~/components/AppBar.vue'
+
 export default {
   components: { AppBar },
 
-  async fetch({ $axios, store }) {
-    if (store.state.countries.list.length === 0) {
-      const data = await $axios.$get('/api/AvailableCountries')
-
-      const countries = data.map((row) => ({
-        name: row.value,
-        code: row.key,
-      }))
-
-      store.commit('countries/update', countries)
-    }
+  async fetch({ store }) {
+    await store.dispatch('countries/fetch')
   },
 
   data() {
@@ -71,7 +63,7 @@ export default {
 
   computed: {
     countries() {
-      return this.$store.state.countries.list
+      return this.$store.getters['countries/countries']
     },
   },
 
